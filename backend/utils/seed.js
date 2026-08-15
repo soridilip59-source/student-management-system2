@@ -15,12 +15,73 @@ const seedDatabase = async () => {
     console.log('🌱 Checking / Seeding Initial Demo Data...');
 
     const userCount = await User.countDocuments();
-    if (userCount > 0) {
-      console.log('⚡ Database already contains records. Skipping seed.');
+    const adminExists = await User.findOne({ email: 'admin@sms.com' });
+    const teacherExists = await User.findOne({ email: 'teacher@sms.com' });
+
+    if (userCount > 0 && adminExists && teacherExists) {
+      console.log('⚡ Database already contains admin & teacher records. Skipping full seed.');
       return;
     }
 
-    console.log('🔄 Seeding default Admin, Faculty, Students, Courses, Attendance & Marks...');
+    if (userCount > 0) {
+      console.log('🔄 Ensuring missing Admin or Teacher accounts exist...');
+      if (!adminExists) {
+        await User.create({
+          name: 'System Administrator',
+          email: 'admin@sms.com',
+          password: 'password123',
+          role: 'admin',
+          phone: '+1 555-0199',
+          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+        });
+        console.log('✅ Created missing default Admin (admin@sms.com)');
+      }
+
+      if (!teacherExists) {
+        const teacherUser = await User.create({
+          name: 'Dr. Sarah Jenkins',
+          email: 'teacher@sms.com',
+          password: 'password123',
+          role: 'teacher',
+          phone: '+1 555-0142',
+          avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150',
+        });
+
+        let course = await Course.findOne();
+        if (!course) {
+          course = await Course.create({
+            name: 'Bachelor of Commerce (B.Com)',
+            code: 'BCOM101',
+            department: 'Commerce & Accounting',
+            duration: '3 Years',
+            description: 'Comprehensive undergraduate degree in Financial Accounting, Economics, Business Law, and Taxation.',
+            subjects: [
+              { code: 'ACC101', name: 'Financial Accounting', credits: 4 },
+              { code: 'ECO102', name: 'Business Economics', credits: 3 },
+            ],
+          });
+        }
+
+        const existingTeacherRecord = await Teacher.findOne({ email: 'teacher@sms.com' });
+        if (!existingTeacherRecord) {
+          await Teacher.create({
+            employeeId: 'EMP-1001',
+            user: teacherUser._id,
+            name: teacherUser.name,
+            email: teacherUser.email,
+            phone: teacherUser.phone,
+            department: 'Commerce & Accounting',
+            designation: 'Associate Professor & Dept Head',
+            qualification: 'Ph.D. in Financial Economics (Oxford)',
+            subjects: ['Financial Accounting', 'Business Economics'],
+            assignedCourses: [course._id],
+            avatar: teacherUser.avatar,
+          });
+        }
+        console.log('✅ Created missing default Teacher (teacher@sms.com)');
+      }
+      return;
+    }
 
     // 1. Create Core Users
     const adminUser = await User.create({

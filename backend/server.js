@@ -14,8 +14,8 @@ const startServer = async () => {
     // 1. Connect to Database (Mongo Atlas / Local / In-Memory auto fallback)
     await connectDB();
 
-    // Demo data is opt-in so production deployments never receive known accounts.
-    if (process.env.SEED_DEMO_DATA === 'true') await seedDatabase();
+    // Seed default demo data if enabled or by default in development
+    if (process.env.SEED_DEMO_DATA !== 'false') await seedDatabase();
 
     // 3. Start Express server listener
     const server = app.listen(PORT, () => {

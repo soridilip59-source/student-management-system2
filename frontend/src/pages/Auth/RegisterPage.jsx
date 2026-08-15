@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { GraduationCap, Lock, Mail, User, Phone, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { GraduationCap, Lock, Mail, User, Phone, ArrowLeft, ShieldCheck, Shield, BookOpen, Users } from 'lucide-react';
 
 export const RegisterPage = ({ onNavigateLogin }) => {
   const { register } = useAuth();
@@ -9,12 +9,17 @@ export const RegisterPage = ({ onNavigateLogin }) => {
     email: '',
     password: '',
     phone: '',
+    role: 'student',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleRoleSelect = (role) => {
+    setFormData({ ...formData, role });
   };
 
   const handleSubmit = async (e) => {
@@ -57,6 +62,51 @@ export const RegisterPage = ({ onNavigateLogin }) => {
           )}
 
           <form className="space-y-3.5" onSubmit={handleSubmit}>
+            {/* Role Selection */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Register As Account Type</label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleRoleSelect('student')}
+                  className={`py-2 px-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1 transition-all ${
+                    formData.role === 'student'
+                      ? 'bg-emerald-500/20 border-emerald-500/60 text-emerald-300 shadow-sm'
+                      : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <Users className="w-4 h-4" />
+                  <span>Student</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleRoleSelect('teacher')}
+                  className={`py-2 px-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1 transition-all ${
+                    formData.role === 'teacher'
+                      ? 'bg-blue-500/20 border-blue-500/60 text-blue-300 shadow-sm'
+                      : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <BookOpen className="w-4 h-4" />
+                  <span>Teacher</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleRoleSelect('admin')}
+                  className={`py-2 px-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1 transition-all ${
+                    formData.role === 'admin'
+                      ? 'bg-purple-500/20 border-purple-500/60 text-purple-300 shadow-sm'
+                      : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <Shield className="w-4 h-4" />
+                  <span>Admin</span>
+                </button>
+              </div>
+            </div>
+
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">Full Name</label>
               <div className="relative">
@@ -69,7 +119,7 @@ export const RegisterPage = ({ onNavigateLogin }) => {
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="e.g. John Doe"
+                  placeholder={formData.role === 'teacher' ? 'e.g. Dr. Sarah Jenkins' : formData.role === 'admin' ? 'e.g. Administrator' : 'e.g. Rahul Sharma'}
                   className="w-full pl-10 pr-4 py-2 bg-slate-900/80 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
               </div>
@@ -134,7 +184,7 @@ export const RegisterPage = ({ onNavigateLogin }) => {
               disabled={loading}
               className="w-full mt-3 flex justify-center items-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-brand-600 hover:bg-brand-500 transition-all shadow-lg shadow-brand-600/30 disabled:opacity-50"
             >
-              {loading ? 'Registering...' : 'Complete Registration'}
+              {loading ? 'Registering...' : `Register as ${formData.role.charAt(0).toUpperCase() + formData.role.slice(1)}`}
             </button>
           </form>
 

@@ -21,7 +21,8 @@ import { StudentFormModal } from './StudentFormModal';
 import api from '../../services/api';
 
 export const StudentList = () => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isTeacher } = useAuth();
+  const canManageStudents = isAdmin || isTeacher;
   const [students, setStudents] = useState([]);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -138,7 +139,7 @@ export const StudentList = () => {
             <Download className="w-4 h-4 text-slate-500" /> Export CSV
           </button>
 
-          {isAdmin && (
+          {canManageStudents && (
             <button
               onClick={() => {
                 setEditingStudent(null);
@@ -304,27 +305,27 @@ export const StudentList = () => {
                           <Eye className="w-4 h-4" />
                         </button>
 
-                        {isAdmin && (
-                          <>
-                            <button
-                              onClick={() => {
-                                setEditingStudent(student);
-                                setIsFormOpen(true);
-                              }}
-                              className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              title="Edit Student"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
+                        {canManageStudents && (
+                          <button
+                            onClick={() => {
+                              setEditingStudent(student);
+                              setIsFormOpen(true);
+                            }}
+                            className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Edit Student"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                        )}
 
-                            <button
-                              onClick={() => handleDelete(student._id, student.name)}
-                              className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Delete Student"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </>
+                        {isAdmin && (
+                          <button
+                            onClick={() => handleDelete(student._id, student.name)}
+                            className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete Student"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         )}
                       </div>
                     </td>
@@ -354,7 +355,7 @@ export const StudentList = () => {
         studentId={selectedStudentId}
       />
 
-      {isAdmin && (
+      {canManageStudents && (
         <StudentFormModal
           isOpen={isFormOpen}
           onClose={() => setIsFormOpen(false)}

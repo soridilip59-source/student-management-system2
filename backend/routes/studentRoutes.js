@@ -14,12 +14,12 @@ router.use(authenticateUser);
 router
   .route('/')
   .get(getStudents)
-  .post(authorizeRoles('admin'), createStudent);
+  .post(authorizeRoles('admin', 'teacher'), createStudent);
 
 router
   .route('/:id')
   .get(getStudentById)
-  .put(authorizeRoles('admin'), updateStudent)
+  .put(authorizeRoles('admin', 'teacher'), updateStudent)
   .delete(authorizeRoles('admin'), deleteStudent);
 
 module.exports = router;
