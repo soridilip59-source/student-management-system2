@@ -18,25 +18,38 @@ const reportRoutes = require('./routes/reportRoutes');
 const auditLogRoutes = require('./routes/auditLogRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 
+const { connectDB } = require('./config/db');
+const { seedDatabase } = require('./utils/seed');
+
 const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000,http://localhost:5173')
-  .split(',')
-  .map((origin) => origin.trim())
-  .filter(Boolean);
 
 // Middleware
 app.set('trust proxy', 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-  origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('Origin not allowed by CORS policy'));
-  },
+  origin: true,
   credentials: true,
 }));
 app.use('/api', rateLimit({ windowMs: 15 * 60 * 1000, max: 300, standardHeaders: true, legacyHeaders: false }));
+
+// Auto-connect DB on incoming request (Crucial for Vercel serverless lifecycle)
+let isDbReady = false;
+app.use(async (req, res, next) => {
+  if (!isDbReady) {
+    try {
+      await connectDB();
+      if (process.env.SEED_DEMO_DATA !== 'false') {
+        await seedDatabase().catch((e) => console.warn('Seed notice:', e.message));
+      }
+      isDbReady = true;
+    } catch (err) {
+      console.error('Database connection middleware error:', err.message);
+    }
+  }
+  next();
+});
 
 if (!isProduction) {
   app.use(morgan('dev'));

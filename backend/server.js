@@ -5,26 +5,22 @@ const { seedDatabase } = require('./utils/seed');
 
 const PORT = process.env.PORT || 5000;
 
+// Standalone server starter (Used for local dev / VPS)
 const startServer = async () => {
   try {
-    if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
-      throw new Error('JWT_SECRET must be set in production');
-    }
-
-    // 1. Connect to Database (Mongo Atlas / Local / In-Memory auto fallback)
+    // Connect to Database
     await connectDB();
 
-    // Seed default demo data if enabled or by default in development
-    if (process.env.SEED_DEMO_DATA !== 'false') await seedDatabase();
+    // Seed default demo data if enabled
+    if (process.env.SEED_DEMO_DATA !== 'false') {
+      await seedDatabase().catch((e) => console.warn('Seed notice:', e.message));
+    }
 
-    // 3. Start Express server listener
     const server = app.listen(PORT, () => {
-      console.log(`🚀 Student Management System Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+      console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📡 API Base URL: http://localhost:${PORT}/api`);
-      console.log(`🩺 Health Check: http://localhost:${PORT}/api/health`);
     });
 
-    // Handle Unhandled Promise Rejections
     process.on('unhandledRejection', (err) => {
       console.error(`💥 Unhandled Rejection: ${err.message}`);
       server.close(() => process.exit(1));
@@ -35,4 +31,11 @@ const startServer = async () => {
   }
 };
 
-startServer();
+// If executed directly (e.g. node server.js or npm start), start the listener
+if (!process.env.VERCEL && require.main === module) {
+  startServer();
+}
+
+// Export express app instance for Vercel Serverless Functions
+module.exports = app;
+
